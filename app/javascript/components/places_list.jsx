@@ -18,27 +18,34 @@ function PlacesList() {
                   setloading(false)}
                 );
     }, [])
-
+    const headerClass = 'px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider'
     const loadingSection = (<div>Loading...</div>)
-    const dataSection = loadedPlaces.map((place, index) =>
-      <div key= {index}>
+    
+    const dataSection = (
         <table>
-          <tr>
-            <th>Name</th>
-            <th>City</th>
-            <th>Recent Upload Speed</th>
-            <th>Recent Upload Units</th>
-            <th>Number ofmeasurements</th>
-          </tr>
-          <tr>
-            <td> {place.name} </td>
-            <td> {place.city} </td>
-            <td> {place.most_recent_download_speed} </td>
-            <td> {place.most_recent_speed_units} </td>
-            <td> {place.number_of_measurement} </td>
-          </tr>
-        </table>
-      </div>
+          <thead>
+            <tr>
+              <th className={headerClass} >Name</th>
+              <th className={headerClass} >City</th>
+              <th className={headerClass} >Recent Upload Speed</th>
+              <th className={headerClass} >Recent Upload Units</th>
+              <th className={headerClass} >Number ofmeasurements</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadedPlaces.map((place, index) => {
+              return (  
+                  <tr key= {index}>
+                    <td> {place.name} </td>
+                    <td> {place.city} </td>
+                    <td> {place.most_recent_download_speed} </td>
+                    <td> {place.most_recent_speed_units} </td>
+                    <td> {place.number_of_measurements} </td>
+                  </tr>
+              )
+            })}
+          </tbody>
+        </table>      
     )
 
     if (loading) {
