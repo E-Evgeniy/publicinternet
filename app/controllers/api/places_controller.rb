@@ -3,7 +3,7 @@ module Api
   class PlacesController < ApplicationController
     def index
       puts('PARAMS = ', params)
-      places = get_matching_places(params["search_term"]).map do |place|
+      places = get_matching_places(params['search_term']).map do |place|
         {
           name: place.name,
           city: place.city,
@@ -32,7 +32,7 @@ module Api
       if search_term.blank?
         Place.all
       else
-        Place.where("name LIKE ? OR city LOKE ?", "%search_term%", "%search_term%")
+        Place.where('name LIKE :search_term OR city LIKE :search_term', search_term: "%#{search_term}%")
       end
     end
   end
