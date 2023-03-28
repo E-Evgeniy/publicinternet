@@ -1,20 +1,54 @@
 import React, { useState, useEffect } from "react";
 
-import { ReactInternetSpeedMeter } from 'react-internet-meter'
+import { ReactInternetSpeedMeter } from 'react-internet-meter';
+import { useNavigate } from "react-router-dom";
+
 
 export default function NewInternetSpeed() {
     const [testInProgress, setTestInProgress] = useState(false)
     const [downloadSpeeds, setDownloadSpeeds] = useState([])
+    const [latesDownloadSpeed, setlatesDownloadSpeed] = useState(null)
+    const [placeName, setPlaceName] = useState("")
+    const [placeCity, setPlaceCity] = useState("")
+    const navigate = useNavigate();
 
-    const onDownloadSpeedChange = (speed) => {
-        const newDownloadSpeeds = downloadSpeeds.add(speed)
-        // if there are now 5 measurements stored, we can stop the test
-        setDownloadSpeeds(newDownloadSpeeds)
-        if (newDownloadSpeeds.length > 5) {
-            setTestInProgress(false)
+    useEffect(() => {
+        if (latesDownloadSpeed) {
+            const newDownloadSpeeds = [...downloadSpeeds, latesDownloadSpeed]
+            // if there are now 5 measurements stored, we can stop the test
+            console.log(`before: ${downloadSpeeds}, after: ${newDownloadSpeeds}`)
+            setDownloadSpeeds(newDownloadSpeeds)
+            const sufficientDataPoints = newDownloadSpeeds.length >= 5
+            if (sufficientDataPoints) {
+                // Send a pist request
+                const apiEndpoint = `api/internet_speed`
+                const data = {
+                    "download_units": "mbps",
+                    "download_speed": (1.0 * downloadSpeeds / downloadSpeeds.length),
+                    "place_name": placeName,
+                    "place_city": placeCity,
+
+                }
+
+                fetch(apiEndpoint, {
+                    method: "POST", // or 'PUT'
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                })
+                    .then(_ => {
+                        // Redirect to the home page
+                        navigate("/")
+                        console.log("Success");
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
+            }
         }
-        setDownloadSpeeds(newDownloadSpeeds)
-    }
+    }, [latesDownloadSpeed])
+
     return (
         <div className="bg-white p-8 rounded-md w-full">
             <div className=" flex items-center justify-between pb-6">
@@ -31,6 +65,7 @@ export default function NewInternetSpeed() {
                     id="placeName"
                     type="text"
                     placeholder="Place Name"
+                    onChange={(e) => setPlaceName(e.target.value)}
                 />
             </div>
             <div className="md:ml-2 mt-2 w-96">
@@ -42,6 +77,7 @@ export default function NewInternetSpeed() {
                     id="city"
                     type="text"
                     placeholder="City"
+                    onChange={(e) => setPlaceCity(e.target.value)}
                 />
             </div>
             <div className="md:ml-2 mt-4 w-96 text-center">
@@ -58,8 +94,7 @@ export default function NewInternetSpeed() {
                             threshold={0}
                             imageUrl="https://cdn.speedcheck.org/images/reviews/google-speed-test-mobile.jpg"
                             downloadSize="157000" //bytes
-                            callbackFunctionOnNetworkDown={(speed) => console.log(`callbackFunctionOnNetworkDown ${speed}`)}
-                            callbackFunctionOnNetworkTest={(speed) => console.log(`callbackFunctionOnNetworkTest ${speed}`)}
+                            callbackFunctionOnNetworkTest={(speed) => setlatesDownloadSpeed(speed)}
                         />
                     </div>
                 }
