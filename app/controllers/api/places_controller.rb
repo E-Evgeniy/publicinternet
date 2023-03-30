@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
+# Controller the API PlacesController
 module Api
   # PlacesController
-  class PlacesController < ApplicationController
+  class PlacesController < BaseController
     def index
-      puts('PARAMS = ', params)
       places = get_matching_places(params['search_term']).map do |place|
         {
           name: place.name,

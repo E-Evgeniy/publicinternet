@@ -10,24 +10,28 @@ export default function NewInternetSpeed() {
     const [latesDownloadSpeed, setlatesDownloadSpeed] = useState(null)
     const [placeName, setPlaceName] = useState("")
     const [placeCity, setPlaceCity] = useState("")
+    const [placeAddress, setplaceAddress] = useState("")
     const navigate = useNavigate();
+    const MAX_RREQUEST_FOR_SPEED_TEST = 5
+    const SPEED_PING_TEST_INTERVAL_MS = 1000
 
     useEffect(() => {
         if (latesDownloadSpeed) {
             const newDownloadSpeeds = [...downloadSpeeds, latesDownloadSpeed]
             // if there are now 5 measurements stored, we can stop the test
-            console.log(`before: ${downloadSpeeds}, after: ${newDownloadSpeeds}`)
             setDownloadSpeeds(newDownloadSpeeds)
-            const sufficientDataPoints = newDownloadSpeeds.length >= 5
+            const sufficientDataPoints = newDownloadSpeeds.length >= MAX_RREQUEST_FOR_SPEED_TEST
             if (sufficientDataPoints) {
                 // Send a pist request
                 const apiEndpoint = `api/internet_speed`
                 const data = {
                     "download_units": "mbps",
-                    "download_speed": (1.0 * downloadSpeeds / downloadSpeeds.length),
+                    "download_speed": ((1.0 * newDownloadSpeeds.reduce((partialSum, a) => partialSum + parseFloat(a), 0) / downloadSpeeds.length)).toFixed(2),
                     "place_name": placeName,
                     "place_city": placeCity,
+                    "place_address": placeAddress
                 }
+                debugger
 
                 fetch(apiEndpoint, {
                     method: "POST", // or 'PUT'
@@ -40,15 +44,12 @@ export default function NewInternetSpeed() {
                         if (response.ok) {
                             // Redirect to the home page
                             navigate("/")
-                            console.log("Success");
                         } else {
-                            console.log(`Server Error: ${response}`)
+                            // This will stop speedtest
+                            location.reload()
                         }
                         setTestInProgress(false)
                         setDownloadSpeeds([])
-                        // This will stop speedtest
-                        location.reload()
-
                     })
                     .catch((error) => {
                         console.error("Network Error:", error);
@@ -88,6 +89,18 @@ export default function NewInternetSpeed() {
                     onChange={(e) => setPlaceCity(e.target.value)}
                 />
             </div>
+            <div className="md:ml-2 mt-2 w-96">
+                <label className="block mb-2 text-sm font-bold text-gray-700">
+                    Address
+                </label>
+                <input
+                    className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                    id="address"
+                    type="text"
+                    placeholder="Address"
+                    onChange={(e) => setplaceAddress(e.target.value)}
+                />
+            </div>
             <div className="md:ml-2 mt-4 w-96 text-center">
                 {testInProgress &&
                     <div>
@@ -97,7 +110,7 @@ export default function NewInternetSpeed() {
                             outputType="alert"
                             customClassName={null}
                             txtMainHeading="Opps..."
-                            pingInterval={1000} // milliseconds 
+                            pingInterval={SPEED_PING_TEST_INTERVAL_MS} // milliseconds 
                             thresholdUnit='megabyte' // "byte" , "kilobyte", "megabyte" 
                             threshold={0}
                             imageUrl="https://cdn.speedcheck.org/images/reviews/google-speed-test-mobile.jpg"
