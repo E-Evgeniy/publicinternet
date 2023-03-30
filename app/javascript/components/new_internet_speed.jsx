@@ -27,7 +27,6 @@ export default function NewInternetSpeed() {
                     "download_speed": (1.0 * downloadSpeeds / downloadSpeeds.length),
                     "place_name": placeName,
                     "place_city": placeCity,
-
                 }
 
                 fetch(apiEndpoint, {
@@ -37,13 +36,22 @@ export default function NewInternetSpeed() {
                     },
                     body: JSON.stringify(data),
                 })
-                    .then(_ => {
-                        // Redirect to the home page
-                        navigate("/")
-                        console.log("Success");
+                    .then((response) => {
+                        if (response.ok) {
+                            // Redirect to the home page
+                            navigate("/")
+                            console.log("Success");
+                        } else {
+                            console.log(`Server Error: ${response}`)
+                        }
+                        setTestInProgress(false)
+                        setDownloadSpeeds([])
+                        // This will stop speedtest
+                        location.reload()
+
                     })
                     .catch((error) => {
-                        console.error("Error:", error);
+                        console.error("Network Error:", error);
                     });
             }
         }
